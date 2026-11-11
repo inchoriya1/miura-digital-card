@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#fff5ec">
+  <title>미우라 · 디지털 명함</title>
+  <style>
+    :root { color-scheme:light; --ink:#393442; --muted:#817888; --line:#ebe6eb; }
+    * { box-sizing:border-box; }
+    html { min-width:0; overflow-x:hidden; overflow-x:clip; }
+    body { margin:0; min-width:0; min-height:100svh; padding:32px 24px 24px;
+      background:radial-gradient(ellipse at 8% 12%,#ffe6db 0,transparent 48%),
+        radial-gradient(ellipse at 95% 42%,#e5eafb 0,transparent 48%),
+        linear-gradient(160deg,#fffaf3,#faf4fc 65%,#f0f8f6);
+      color:var(--ink); font-family:system-ui,-apple-system,"Malgun Gothic",sans-serif;
+      line-height:1.6; -webkit-font-smoothing:antialiased; }
+    button,a { -webkit-tap-highlight-color:transparent; touch-action:manipulation; }
+    button { font:inherit; cursor:pointer; }
+    a { color:inherit; text-decoration:none; }
+    :focus-visible { outline:3px solid #9873b4; outline-offset:4px; }
+    .stage { width:100%; max-width:420px; min-width:0; margin:0 auto; perspective:1200px; }
+    .card { --lx:46%; --ly:20%; --rx:0deg; --ry:0deg; --angle:120deg; --glow:.30;
+      --shadow-x:0px; --shadow-y:20px;
+      position:relative; isolation:isolate; width:100%; min-width:0; border-radius:28px;
+      background:linear-gradient(135deg,#fffefbcc,#fffdfdf2 48%,#fafaffed);
+      border:1px solid #fff; outline:1px solid #e8dce84d; overflow:hidden;
+      transform:rotateX(var(--rx)) rotateY(var(--ry)); transform-origin:50% 45%;
+      box-shadow:0 2px 2px #ab8b9a0c,var(--shadow-x) var(--shadow-y) 50px #927c9c1a,
+        inset 0 0 0 1px #ffffffb3; }
+    .card::before,.card::after { content:""; position:absolute; inset:0;
+      border-radius:inherit; pointer-events:none; }
+    .card::before { z-index:0; opacity:.65;
+      background:radial-gradient(ellipse at var(--lx) var(--ly),#fff9cf80,transparent 42%),
+        linear-gradient(var(--angle),#ffd9e83d 2%,#fcf4d629 24%,#d2f4ee57 42%,
+        #dedcff66 61%,#ffd7e43d 78%,#fff5de40);
+      background-size:180% 180%; background-position:var(--lx) var(--ly); }
+    .card::after { z-index:3; opacity:var(--glow); mix-blend-mode:screen;
+      background:radial-gradient(ellipse at var(--lx) var(--ly),#fff 0,#ffffff40 20%,transparent 55%),
+        linear-gradient(var(--angle),transparent 30%,#ffffff14 40%,#ffffffed 49%,
+        #ffffff14 57%,transparent 68%);
+      background-size:100% 100%,220% 220%; background-position:0 0,var(--lx) var(--ly); }
+    .card>header,.card>.content,.card>footer { position:relative; z-index:1; }
+    .cover { min-height:112px; padding:26px 28px 15px; display:flex;
+      justify-content:space-between; align-items:center; gap:12px;
+      background:radial-gradient(ellipse at 85% 0,#eadbfa88,transparent 60%),
+        radial-gradient(ellipse at 0 0,#ffe1ca88,transparent 70%); }
+    .cover>span { font-size:10px; font-weight:600; letter-spacing:.19em; color:#a17d86; }
+    .symbol { position:relative; display:grid; place-items:center; width:62px; height:62px;
+      flex-shrink:0; color:#9b73a8; font-size:26px; font-weight:500;
+      border:1px solid #ffffffed; border-radius:50%;
+      background:conic-gradient(from var(--angle),#fff1e5,#f2dbef,#e3eafa,#e3f4ec,#fff4df,#fff1e5);
+      box-shadow:inset 0 0 12px #ffffffd9,0 4px 16px #bfa9c32b; }
+    .symbol::after { content:"✦"; position:absolute; right:-4px; top:-5px;
+      color:#b28fb8; font-size:17px; text-shadow:0 0 9px #fff; }
+    .sparkles { position:absolute; inset:0; z-index:2; pointer-events:none; overflow:hidden; }
+    .sparkles i { position:absolute; width:10px; height:10px; opacity:var(--glow); }
+    .sparkles i::before,.sparkles i::after { content:""; position:absolute;
+      background:#fff; border-radius:50%; box-shadow:0 0 6px #d3adce80; }
+    .sparkles i::before { width:1px; height:100%; left:50%; }
+    .sparkles i::after { height:1px; width:100%; top:50%; }
+    .sparkles i:nth-child(1) { left:61%; top:5%; width:13px; height:13px; }
+    .sparkles i:nth-child(2) { right:8%; top:37%; }
+    .sparkles i:nth-child(3) { left:5%; top:62%; width:7px; height:7px; }
+    .sparkles i:nth-child(4) { right:14%; bottom:9%; width:12px; height:12px; }
+    .content { padding:7px 28px 8px; }
+    .role { margin:0 0 5px; color:#9a788a; font-size:12px; letter-spacing:.02em; }
+    h1 { margin:0; font-size:42px; font-weight:750; letter-spacing:-.07em; line-height:1.3; }
+    .intro { margin:18px 0 20px; font-size:14px; line-height:1.95; color:#746979;
+      letter-spacing:-.035em; word-break:keep-all; overflow-wrap:anywhere; }
+    .tags { display:flex; flex-wrap:wrap; gap:7px; margin:0 0 24px; padding:0; list-style:none; }
+    .tags li { padding:6px 11px; border-radius:8px; font-size:11px; font-weight:550;
+      color:#a16a73; background:#fce8e5; border:1px solid #fff9; }
+    .tags li:nth-child(2) { color:#678a90; background:#e5f2f1; }
+    .tags li:nth-child(3) { color:#8e78a8; background:#eee7f7; }
+    .contacts { margin:0; padding:19px 0; border-top:1px solid var(--line);
+      border-bottom:1px solid var(--line); }
+    .contacts>div { display:grid; grid-template-columns:49px minmax(0,1fr); align-items:center; gap:10px; }
+    .contacts>div+div { margin-top:10px; }
+    dt { color:#9b8ca0; font-size:9px; font-weight:600; letter-spacing:.10em; }
+    dd { margin:0; font-size:14px; font-weight:500; overflow-wrap:anywhere; min-width:0; }
+    .contacts a { display:inline-block; padding:6px 0; }
+    .actions { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:9px; margin-top:22px; }
+    .button { display:flex; align-items:center; justify-content:center; gap:7px;
+      min-width:0; min-height:48px; padding:12px 7px; border:1px solid #e9e1e9;
+      border-radius:13px; background:#fff9; color:#8b758f; font-size:12px; font-weight:600; }
+    .button.primary { grid-column:1/-1; color:#fff; border-color:#e8a3a3;
+      background:linear-gradient(110deg,#e9a9a1,#d694b1); font-size:14px;
+      box-shadow:0 5px 13px #da9ab029,inset 0 1px 0 #ffffff50; }
+    .button:hover { background:#f8eff9; }
+    .button.primary:hover { background:linear-gradient(110deg,#e39b92,#c783a4); }
+    .button svg,.motion-button svg { width:17px; height:17px; flex-shrink:0; fill:none;
+      stroke:currentColor; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; }
+    .notice { min-height:38px; margin:13px 0 0; color:#9a8c9d; font-size:10px; text-align:center; }
+    .footer { display:flex; justify-content:space-between; align-items:center;
+      padding:2px 28px 22px; color:#a498ac; font-size:8px; letter-spacing:.12em; gap:10px; }
+    .footer-mark { font-size:14px; color:#c2a3c8; }
+    .copy-fallback { display:none; margin:0 0 15px; padding:12px; border:1px solid var(--line);
+      border-radius:10px; background:#fcf6fc; font-size:12px; overflow-wrap:anywhere; }
+    .copy-fallback p { margin:0 0 8px; }
+    .copy-fallback input { display:block; width:100%; min-width:0; padding:10px;
+      border:1px solid #e3d7e8; border-radius:6px; font:inherit; font-size:16px; }
+    .motion-panel { max-width:420px; margin:20px auto 0; text-align:center; }
+    .motion-button { display:inline-flex; align-items:center; justify-content:center;
+      gap:7px; min-height:44px; padding:9px 17px; border:1px solid #e0d4e4;
+      border-radius:30px; background:#ffffff87; color:#8e749e; font-size:11px; }
+    .motion-button[aria-pressed="true"] { background:#f0e4f7; border-color:#d5bce1; }
+    .motion-button:disabled { cursor:default; opacity:.65; }
+    .motion-hint { margin:9px 0 0; color:#a393a6; font-size:10px; line-height:1.8; overflow-wrap:anywhere; }
+    .motion-hint strong { font-weight:500; }
+    @media (max-width:340px) {
+      body { padding:24px 18px; }
+      .content { padding:7px 21px 8px; }
+      .cover { padding:22px 21px 15px; }
+      .footer { padding:2px 21px 20px; }
+      .button { font-size:11px; gap:5px; }
+      .contacts>div { grid-template-columns:42px minmax(0,1fr); gap:6px; }
+      dd { font-size:13px; }
+    }
+    @media (min-width:600px) { body { padding-top:50px; } }
+    @media (prefers-reduced-motion:reduce) {
+      .card { transform:none!important; }
+      .card::after { opacity:.15; }
+      .sparkles { display:none; }
+    }
+    @media (prefers-reduced-motion:no-preference) {
+      .button,.motion-button { transition:background .18s ease,box-shadow .18s ease; }
+    }
+  </style>
+</head>
+<body>
+  <div class="stage">
+  <main class="card" aria-labelledby="name">
+    <div class="sparkles" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+    <header class="cover">
+      <span>MIURA / DIGITAL CARD</span>
+      <div class="symbol" aria-hidden="true">미</div>
+    </header>
+    <div class="content">
+      <p class="role">교육팀과장</p>
+      <h1 id="name">미우라</h1>
+      <p class="intro">안녕하세요. 한국미우라 천안에서 강의를 하는 미우라강사입니다.</p>
+      <ul class="tags" aria-label="담당 업무">
+        <li>AI강의</li><li>자동화</li><li>월급루팡</li>
+      </ul>
+      <dl class="contacts">
+        <div><dt>PHONE</dt><dd><a href="tel:01011221122">010-1122-1122</a></dd></div>
+        <div><dt>EMAIL</dt><dd><a href="mailto:miura13@gmail.com">miura13@gmail.com</a></dd></div>
+      </dl>
+      <div class="actions">
+        <button class="button primary" id="save" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4M5 16v5h14v-5"/></svg>
+          연락처 저장
+        </button>
+        <a class="button" href="tel:01011221122">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 3 3 5-3 3a15 15 0 0 0 6 6l3-3 5 3-1 4C10 22 2 14 3 4Z"/></svg>
+          전화 걸기
+        </a>
+        <button class="button" id="copy" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="13" rx="2"/><path d="M15 8V3H3v13h5"/></svg>
+          메일 주소 복사
+        </button>
+      </div>
+      <p class="notice" id="notice" role="status" aria-live="polite">편한 방법으로 연락해 주세요.</p>
+      <div class="copy-fallback" id="fallback">
+        <p>주소를 길게 눌러 복사해 주세요.</p>
+        <input id="email-text" type="text" value="miura13@gmail.com" readonly aria-label="복사할 메일 주소">
+      </div>
+      <noscript><p>연락처 저장과 메일 복사에는 JavaScript가 필요합니다. 위 연락처로 직접 연락하실 수 있습니다.</p></noscript>
+    </div>
+    <footer class="footer"><span>AI EDUCATION · AUTOMATION</span><span class="footer-mark" aria-hidden="true">✧</span></footer>
+  </main>
+  </div>
+  <div class="motion-panel">
+    <button class="motion-button" id="motion" type="button" aria-pressed="false" aria-describedby="motion-hint">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="3" width="10" height="18" rx="2"/><path d="M11 18h2M3 7l-1 4 3 3m16-7 1 4-3 3"/></svg>
+      <span id="motion-label">기울여 반짝이기</span>
+    </button>
+    <p class="motion-hint" id="motion-hint" role="status" aria-live="polite">명함을 살짝 쓸어 보세요.<br>손끝을 따라 은은한 빛이 움직입니다.</p>
+  </div>
+  <script>
+    const email = 'miura13@gmail.com';
+    const notice = document.getElementById('notice');
+    function vcardEscape(value) {
+      return value.replace(/\\/g, '\\\\').replace(/\r?\n/g, '\\n')
+        .replace(/;/g, '\\;').replace(/,/g, '\\,');
+    }
+    document.getElementById('save').addEventListener('click', () => {
+      const vcard = [
+        'BEGIN:VCARD', 'VERSION:3.0',
+        'FN:' + vcardEscape('미우라'), 'N:;' + vcardEscape('미우라') + ';;;',
+        'TITLE:' + vcardEscape('교육팀과장'),
+        'TEL;TYPE=CELL:010-1122-1122', 'EMAIL;TYPE=INTERNET:' + email,
+        'NOTE:' + vcardEscape('안녕하세요. 한국미우라 천안에서 강의를 하는 미우라강사입니다.\n담당 업무: AI강의, 자동화, 월급루팡'),
+        'END:VCARD', ''
+      ].join('\r\n');
+      const url = URL.createObjectURL(new Blob([vcard], {type:'text/vcard;charset=utf-8'}));
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'miura.vcf';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+      notice.textContent = '연락처 파일을 열고 기기의 연락처 추가를 완료해 주세요.';
+    });
+    document.getElementById('copy').addEventListener('click', async () => {
+      let copied = false;
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(email);
+          copied = true;
+        }
+      } catch (_) {}
+      if (!copied) {
+        const field = document.createElement('textarea');
+        field.value = email;
+        field.readOnly = true;
+        field.style.cssText = 'position:fixed;left:0;top:0;width:1px;height:1px;opacity:0;font-size:16px;';
+        document.body.appendChild(field);
+        field.focus();
+        field.select();
+        field.setSelectionRange(0, email.length);
+        try { copied = document.execCommand('copy'); } catch (_) {}
+        field.remove();
+        document.getElementById('copy').focus({preventScroll:true});
+      }
+      const fallback = document.getElementById('fallback');
+      fallback.style.display = copied ? 'none' : 'block';
+      notice.textContent = copied ? '메일 주소를 복사했습니다.' : '자동 복사가 제한되어 있습니다. 아래 주소를 직접 복사해 주세요.';
+      if (!copied) {
+        const field = document.getElementById('email-text');
+        field.focus({preventScroll:true});
+        field.select();
+        field.setSelectionRange(0, email.length);
+      }
+    });
+    // Local visual effects only. No sensor readings are stored or transmitted.
+    const card = document.querySelector('.card');
+    const stage = document.querySelector('.stage');
+    const motionButton = document.getElementById('motion');
+    const motionLabel = document.getElementById('motion-label');
+    const motionHint = document.getElementById('motion-hint');
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+    let targetX = 0, targetY = 0, lightX = 0, lightY = 0, frame = 0;
+    let sensorActive = false, sensorBaseline = null, sensorTimeout = 0, receivedReading = false;
+    let permissionPending = false;
+
+    function drawLight() {
+      frame = 0;
+      if (document.hidden || reducedMotion.matches) return;
+      lightX += (targetX - lightX) * .14;
+      lightY += (targetY - lightY) * .14;
+      card.style.setProperty('--rx', `${(-lightY * 3.2).toFixed(3)}deg`);
+      card.style.setProperty('--ry', `${(lightX * 3.8).toFixed(3)}deg`);
+      card.style.setProperty('--lx', `${50 + lightX * 43}%`);
+      card.style.setProperty('--ly', `${40 + lightY * 38}%`);
+      card.style.setProperty('--angle', `${120 + lightX * 28 - lightY * 18}deg`);
+      card.style.setProperty('--shadow-x', `${-lightX * 9}px`);
+      card.style.setProperty('--shadow-y', `${20 - lightY * 7}px`);
+      card.style.setProperty('--glow', (.30 + Math.min(1, Math.hypot(lightX, lightY)) * .36).toFixed(3));
+      if (Math.abs(targetX - lightX) + Math.abs(targetY - lightY) > .002) {
+        frame = requestAnimationFrame(drawLight);
+      }
+    }
+    function moveLight(x, y) {
+      if (reducedMotion.matches) return;
+      targetX = clamp(x, -1, 1);
+      targetY = clamp(y, -1, 1);
+      if (!frame && !document.hidden) frame = requestAnimationFrame(drawLight);
+    }
+    stage.addEventListener('pointermove', event => {
+      const rect = stage.getBoundingClientRect();
+      moveLight((event.clientX - rect.left) / rect.width * 2 - 1,
+        (event.clientY - rect.top) / rect.height * 2 - 1);
+    }, {passive:true});
+    stage.addEventListener('pointerleave', () => {
+      if (!sensorActive) moveLight(0, 0);
+    }, {passive:true});
+    stage.addEventListener('pointerup', event => {
+      if (event.pointerType !== 'mouse' && !sensorActive) moveLight(0, 0);
+    }, {passive:true});
+
+    function onOrientation(event) {
+      if (document.hidden || !Number.isFinite(event.beta) || !Number.isFinite(event.gamma)) return;
+      if (!receivedReading) {
+        receivedReading = true;
+        clearTimeout(sensorTimeout);
+        motionHint.textContent = '휴대폰을 천천히 기울여 보세요. 빛과 그림자가 함께 움직입니다.';
+      }
+      if (!sensorBaseline) sensorBaseline = {beta:event.beta, gamma:event.gamma};
+      const dx = ((event.gamma - sensorBaseline.gamma + 540) % 360 - 180) / 23;
+      const dy = ((event.beta - sensorBaseline.beta + 540) % 360 - 180) / 23;
+      const angle = (screen.orientation?.angle ?? window.orientation ?? 0) * Math.PI / 180;
+      moveLight(dx * Math.cos(angle) + dy * Math.sin(angle), dy * Math.cos(angle) - dx * Math.sin(angle));
+    }
+    function stopSensor() {
+      clearTimeout(sensorTimeout);
+      window.removeEventListener('deviceorientation', onOrientation);
+      sensorActive = false;
+      sensorBaseline = null;
+      receivedReading = false;
+      motionButton.setAttribute('aria-pressed', 'false');
+      motionLabel.textContent = '기울여 반짝이기';
+      moveLight(0, 0);
+    }
+    motionButton.addEventListener('click', async () => {
+      if (permissionPending) return;
+      if (sensorActive) {
+        stopSensor();
+        motionHint.textContent = '기울기 효과를 껐습니다. 명함을 쓸면 빛이 움직입니다.';
+        return;
+      }
+      if (reducedMotion.matches) return;
+      if (!window.isSecureContext || !window.DeviceOrientationEvent) {
+        motionHint.textContent = '이 환경에서는 기울기를 감지할 수 없어요. 명함을 손가락으로 쓸어 보세요. 기울기 기능은 지원되는 휴대폰에서 HTTPS 주소로 열어 주세요.';
+        return;
+      }
+      permissionPending = true;
+      try {
+        if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+          const permission = await DeviceOrientationEvent.requestPermission();
+          if (permission !== 'granted') {
+            motionHint.textContent = '기울기 사용이 허용되지 않았어요. 손가락으로 쓸어도 반짝임을 볼 수 있습니다.';
+            return;
+          }
+        }
+        if (reducedMotion.matches) return;
+        sensorBaseline = null;
+        receivedReading = false;
+        window.addEventListener('deviceorientation', onOrientation, {passive:true});
+        sensorActive = true;
+        motionButton.setAttribute('aria-pressed', 'true');
+        motionLabel.textContent = '기울기 효과 끄기';
+        motionHint.textContent = '휴대폰의 기울기를 확인하고 있어요. 천천히 움직여 주세요.';
+        sensorTimeout = setTimeout(() => {
+          if (!receivedReading) {
+            stopSensor();
+            motionHint.textContent = '기울기 신호가 없어요. 명함을 쓸어 반짝임을 확인해 주세요. 휴대폰의 Safari 또는 Chrome에서 HTTPS 주소로 열면 기울기도 사용할 수 있습니다.';
+          }
+        }, 4500);
+      } catch (_) {
+        stopSensor();
+        motionHint.textContent = '기울기 기능을 사용할 수 없어요. 명함을 손가락으로 쓸어 보세요.';
+      } finally {
+        permissionPending = false;
+      }
+    });
+    window.addEventListener('orientationchange', () => { sensorBaseline = null; }, {passive:true});
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        cancelAnimationFrame(frame);
+        frame = 0;
+      } else {
+        sensorBaseline = null;
+        moveLight(0, 0);
+      }
+    });
+    function applyMotionPreference() {
+      if (reducedMotion.matches) {
+        stopSensor();
+        cancelAnimationFrame(frame);
+        frame = 0;
+        card.removeAttribute('style');
+        motionButton.disabled = true;
+        motionHint.textContent = '기기의 동작 줄이기 설정에 따라 움직임 효과를 쉬고 있습니다.';
+      } else {
+        motionButton.disabled = false;
+        motionHint.textContent = '명함을 살짝 쓸어 보세요. 손끝을 따라 은은한 빛이 움직입니다.';
+      }
+    }
+    reducedMotion.addEventListener('change', applyMotionPreference);
+    applyMotionPreference();
+  </script>
+</body>
+</html>
